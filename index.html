@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050505">
+  <title>ATSV Jugendtrainer – Trainerportal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="watermark wm-1">ATSV</div>
+  <div class="watermark wm-2">ATSV</div>
+  <div class="watermark wm-3">ATSV</div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="crest">ATSV<span>1903</span></div>
+      <div><strong>ATSV FORCHHEIM</strong><small>JUGENDTRAINER</small></div>
+    </div>
+    <div class="secure">🔒 Nur für Trainer</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">TRAINERPORTAL</p>
+        <h1>Jugend gemeinsam<br><span>organisieren.</span></h1>
+        <p class="lead">Spieler, Termine, Anwesenheit, Aufgaben und Statistiken – alles an einem Ort.</p>
+      </div>
+      <div class="hero-badge">ATSV<br><small>1903</small></div>
+    </section>
+
+    <section class="welcome">
+      <div><span class="label">ÜBERSICHT</span><h2>Willkommen im Trainerbereich</h2><p>Von hier aus verwaltest du deine Mannschaft und hältst alle wichtigen Informationen fest.</p></div>
+      <button class="primary" onclick="showMessage('Die Anmeldung wird im nächsten Schritt mit dem Trainer-Login verbunden.')">🔐 Trainer anmelden</button>
+    </section>
+
+    <section class="grid">
+      <a class="card" href="#spieler"><b>👥</b><h3>Spieler</h3><p>Vornamen/Spitznamen, Positionen und interne Informationen.</p><span>Öffnen →</span></a>
+      <a class="card" href="#anwesenheit"><b>✅</b><h3>Anwesenheit</h3><p>Training und Spiele mit Zu- und Absagen dokumentieren.</p><span>Öffnen →</span></a>
+      <a class="card" href="#termine"><b>📅</b><h3>Termine</h3><p>Training, Spiele, Besprechungen und Aufgaben planen.</p><span>Öffnen →</span></a>
+      <a class="card" href="#statistiken"><b>📊</b><h3>Statistiken</h3><p>Trainingsbeteiligung, Einsätze, Tore und weitere Werte.</p><span>Öffnen →</span></a>
+      <a class="card" href="#spiele"><b>⚽</b><h3>Spiele</h3><p>Kader, Aufstellung, Einsatzzeiten, Tore und Karten.</p><span>Öffnen →</span></a>
+      <a class="card" href="#aufgaben"><b>📝</b><h3>Trainer & Aufgaben</h3><p>Wer ist wann da und wer übernimmt welche Aufgabe?</p><span>Öffnen →</span></a>
+    </section>
+
+    <section class="privacy">
+      <div class="shield">🔒</div>
+      <div><h2>Interner Trainerbereich</h2><p>Spieler werden auf der Oberfläche nur mit Vorname oder Spitzname geführt. Persönliche Daten bleiben geschützt und der Zugriff wird auf freigeschaltete Trainer beschränkt.</p></div>
+    </section>
+  </main>
+
+  <footer>ATSV Forchheim · Jugendtrainer · Interner Bereich</footer>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
