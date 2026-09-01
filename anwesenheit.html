@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Anwesenheit – Jugendtrainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="watermark wm-1">ATSV</div><div class="watermark wm-2">ATSV</div>
+  <header class="topbar">
+    <div class="brand"><div class="crest">ATSV<span>FORCHHEIM</span></div><div><strong>ATSV FORCHHEIM</strong><small>JUGENDTRAINER</small></div></div>
+    <div class="secure">🔒 Interner Bereich</div>
+  </header>
+  <main class="shell">
+    <div class="page-head">
+      <div><div class="eyebrow">TRAINING</div><h1>Anwesen<span>heit</span></h1><p class="lead">Anwesenheit pro Training schnell erfassen und speichern.</p></div>
+      <a class="secondary" href="index.html">← Dashboard</a>
+    </div>
+
+    <section class="panel">
+      <div class="panel-title"><div><div class="label">TRAINING AUSWÄHLEN</div><h2>Mannschaft & Datum</h2></div></div>
+      <div class="form-row" style="grid-template-columns:1.2fr 1fr auto">
+        <select id="teamSelect"><option value="">Mannschaft auswählen…</option></select>
+        <input id="trainingDate" type="date">
+        <button id="loadButton" class="primary" type="button">Laden</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section id="attendancePanel" class="panel" hidden>
+      <div class="panel-title"><div><div class="label">SPIELER</div><h2>Anwesenheit erfassen</h2></div><div id="summary" class="status"></div></div>
+      <div id="playerList"></div>
+      <button id="saveButton" class="primary" type="button" style="margin-top:18px">💾 Anwesenheit speichern</button>
+    </section>
+
+    <section class="privacy"><div class="shield">🛡️</div><div><h2>Interner Trainerbereich</h2><p>Es werden nur Vorname/Spitzname und die für das Training benötigten Angaben angezeigt.</p></div></section>
+  </main>
+  <footer>ATSV Forchheim · Jugendtrainer · Interner Bereich</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="anwesenheit.js"></script>
+</body>
+</html>
