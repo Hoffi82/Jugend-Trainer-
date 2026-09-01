@@ -15,18 +15,20 @@
 <p class="eyebrow">INTERNER BEREICH</p>
 <h1>Trainer-<span>Login</span></h1>
 <p class="lead">Melde dich mit deinem eigenen Trainerkonto an.</p>
+<div class="login-tabs"><button id="loginTab" class="login-tab active" type="button">Einloggen</button><button id="registerTab" class="login-tab" type="button">Erstregistrierung</button></div>
 <form id="loginForm">
 <label for="username">Benutzername</label>
 <select id="username" required><option value="">Trainer auswählen</option><option value="Hoffi">Hoffi</option><option value="Kai">Kai</option><option value="Marcel">Marcel</option></select>
 <label for="password">Passwort</label>
-<input id="password" type="password" autocomplete="current-password" required placeholder="Dein eigenes Passwort">
-<button class="primary" type="submit">🔐 Anmelden</button>
+<input id="password" type="password" autocomplete="current-password" required minlength="6" placeholder="Dein eigenes Passwort">
+<button id="submitButton" class="primary" type="submit">🔐 Anmelden</button>
 <p id="loginMessage" class="login-message"></p>
 </form>
-<p class="login-note">Nur Hoffi, Kai und Marcel sind als Trainer freigeschaltet.</p>
+<p id="loginHint" class="login-note">Nur Hoffi, Kai und Marcel sind als Trainer freigeschaltet.</p>
 </section>
 </main>
 <footer>ATSV Forchheim · Jugendtrainer · Interner Bereich</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="login.js"></script>
 </body>
 </html>
