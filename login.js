@@ -1,6 +1,7 @@
 const SUPABASE_URL = 'https://jvgqvtnqncelbhuordzy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const REGISTER_FUNCTION = `${SUPABASE_URL}/functions/v1/trainer-register`;
 
 const allowedTrainers = new Set(['Hoffi', 'Kai', 'Marcel']);
 const form = document.getElementById('loginForm');
@@ -11,9 +12,6 @@ const registerTab = document.getElementById('registerTab');
 const hint = document.getElementById('loginHint');
 let mode = 'login';
 
-// Der Trainername bleibt der sichtbare Benutzername.
-// Supabase Auth bekommt intern eine syntaktisch gültige technische Adresse.
-// Diese Adresse wird dem Trainer nicht angezeigt.
 function emailFor(username) {
   const safeName = username.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return `trainer-${safeName}@jvgqvtnqncelbhuordzy.supabase.co`;
@@ -57,33 +55,35 @@ form.addEventListener('submit', async (event) => {
   }
 
   submitButton.disabled = true;
-  const email = emailFor(username);
 
   try {
     if (mode === 'register') {
-      const { data, error } = await db.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: username, member_role: 'trainer' } }
+      const response = await fetch(REGISTER_FUNCTION, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_KEY,
+        },
+        body: JSON.stringify({ username, password }),
       });
-      if (error) throw error;
 
-      if (data.session) {
-        window.location.href = 'index.html';
-      } else {
-        setMessage('Konto angelegt. Falls im Supabase-Projekt eine Bestätigung aktiviert ist, muss sie zuerst abgeschlossen werden.', 'ok');
-      }
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Trainerkonto konnte nicht angelegt werden.');
+
+      // Das Konto wird serverseitig bereits als E-Mail-bestätigt angelegt.
+      // Anschließend erfolgt die normale Supabase-Anmeldung und es entsteht eine Session.
+      const { error } = await db.auth.signInWithPassword({ email: emailFor(username), password });
+      if (error) throw error;
+      window.location.href = 'index.html';
     } else {
-      const { error } = await db.auth.signInWithPassword({ email, password });
+      const { error } = await db.auth.signInWithPassword({ email: emailFor(username), password });
       if (error) throw error;
       window.location.href = 'index.html';
     }
   } catch (error) {
     console.error(error);
     const text = error?.message || 'Anmeldung fehlgeschlagen.';
-    setMessage(mode === 'register' && /already registered|already exists/i.test(text)
-      ? 'Für diesen Trainer gibt es bereits ein Konto. Bitte über „Einloggen“ anmelden.'
-      : `❌ ${text}`, 'error');
+    setMessage(`❌ ${text}`, 'error');
   } finally {
     submitButton.disabled = false;
   }
