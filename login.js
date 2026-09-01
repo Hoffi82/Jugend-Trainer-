@@ -11,11 +11,12 @@ const registerTab = document.getElementById('registerTab');
 const hint = document.getElementById('loginHint');
 let mode = 'login';
 
-// Wie bei Cold N' Dark: Der Trainername bleibt der sichtbare Benutzername.
-// Supabase Auth bekommt intern nur eine technische .local-Adresse. Dadurch
-// wird keine Trainer-E-Mail benötigt und der Benutzer muss keine E-Mail kennen.
+// Der Trainername bleibt der sichtbare Benutzername.
+// Supabase Auth bekommt intern eine syntaktisch gültige technische Adresse.
+// Diese Adresse wird dem Trainer nicht angezeigt.
 function emailFor(username) {
-  return `trainer+${encodeURIComponent(username.trim().toLowerCase()).replace(/%/g, '')}@atsv-jugend.local`;
+  const safeName = username.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return `trainer-${safeName}@jvgqvtnqncelbhuordzy.supabase.co`;
 }
 
 function setMessage(text, type = '') {
