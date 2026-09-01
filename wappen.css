@@ -1,0 +1,5 @@
+/* Originales ATSV-Wappen aus der ATSV-Fanseite */
+:root{--atsv-crest:url('https://raw.githubusercontent.com/Hoffi82/Atsv-Fanseite/main/bilder/ATSV_Wappen_4K_transparent.png')}
+.watermark{background-image:var(--atsv-crest)!important;background-position:center;background-size:contain;background-repeat:no-repeat;opacity:.055!important}
+.crest,.hero-badge{background-image:var(--atsv-crest)!important;background-position:center;background-size:contain;background-repeat:no-repeat;color:transparent!important;border:0!important}
+.crest span,.hero-badge small{display:none!important}
