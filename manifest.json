@@ -1,0 +1,20 @@
+{
+  "name": "ATSV Jugendtrainer",
+  "short_name": "ATSV Trainer",
+  "description": "Internes Trainerportal des ATSV Forchheim",
+  "lang": "de-DE",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/Hoffi82/Atsv-Fanseite/main/bilder/ATSV_Wappen_4K_transparent.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
