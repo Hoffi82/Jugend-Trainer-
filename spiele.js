@@ -6,6 +6,7 @@ const esc=v=>String(v??'').replace(/[&<>\'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':
 function msg(t,c=''){status.textContent=t;status.className=`status ${c}`.trim()}
 function localDateString(){const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),d=String(now.getDate()).padStart(2,'0');return `${y}-${m}-${d}`}
 const eventLabel={tor:'⚽ Tor',gelb:'🟨 Gelbe Karte',gelb_rot:'🟨🟥 Gelb-Rot',rot:'🟥 Rote Karte',einwechslung:'↗ Einwechslung',auswechslung:'↙ Auswechslung'};
+const allowedEventTypes=new Set(Object.keys(eventLabel));
 
 async function load(){
   const t=await db.from('jugend_teams').select('id,name,season').order('name');
@@ -44,8 +45,18 @@ async function openGame(id){
 
   document.getElementById(`saveSquad-${id}`).onclick=async()=>{
     const rows=[...host.querySelectorAll('.game-player[data-player]')];
-    const data=rows.map(row=>({game_id:id,player_id:Number(row.dataset.player),starter:row.querySelector('.starter').checked,minutes:Number(row.querySelector('.minutes').value)||0,goals:Number(row.querySelector('.goals').value)||0,yellow_cards:Number(row.querySelector('.yellow').value)||0,red_cards:Number(row.querySelector('.red').value)||0}));
     const saveStatus=document.getElementById(`saveStatus-${id}`);
+    const data=[];
+    for(const row of rows){
+      const playerId=Number(row.dataset.player);
+      const minutesRaw=row.querySelector('.minutes').value;
+      const goalsRaw=row.querySelector('.goals').value;
+      const yellowRaw=row.querySelector('.yellow').value;
+      const redRaw=row.querySelector('.red').value;
+      const minutes=Number(minutesRaw),goals=Number(goalsRaw),yellow=Number(yellowRaw),red=Number(redRaw);
+      if(!Number.isInteger(playerId)||playerId<1||minutesRaw===''||!Number.isInteger(minutes)||minutes<0||minutes>150||goalsRaw===''||!Number.isInteger(goals)||goals<0||yellowRaw===''||!Number.isInteger(yellow)||yellow<0||redRaw===''||!Number.isInteger(red)||red<0){saveStatus.textContent='Bitte nur gültige Statistikwerte eintragen: Minuten 0–150, Tore/Karten 0 oder höher.';saveStatus.className='status error';return}
+      data.push({game_id:id,player_id:playerId,starter:row.querySelector('.starter').checked,minutes,goals,yellow_cards:yellow,red_cards:red});
+    }
     if(!data.length){saveStatus.textContent='Keine Spieler vorhanden.';saveStatus.className='status error';return}
     const {error}=await db.from('jugend_game_players').upsert(data,{onConflict:'game_id,player_id'});
     if(error){saveStatus.textContent='❌ '+error.message;saveStatus.className='status error';return}
@@ -53,11 +64,13 @@ async function openGame(id){
   };
 
   document.getElementById(`addEvent-${id}`).onclick=async()=>{
-    const minute=Number(document.getElementById(`eventMinute-${id}`).value)||null;
+    const minuteRaw=document.getElementById(`eventMinute-${id}`).value;
+    const minute=Number(minuteRaw);
     const playerId=Number(document.getElementById(`eventPlayer-${id}`).value)||null;
     const eventType=document.getElementById(`eventType-${id}`).value;
     const s=document.getElementById(`eventStatus-${id}`);
-    if(!minute||minute<1||minute>150||!playerId){s.textContent='Bitte Spieler und gültige Minute (1–150) auswählen.';s.className='status error';return}
+    if(!Number.isInteger(minute)||minute<1||minute>150||!playerId){s.textContent='Bitte Spieler und gültige Minute (1–150) auswählen.';s.className='status error';return}
+    if(!allowedEventTypes.has(eventType)){s.textContent='Bitte ein gültiges Ereignis auswählen.';s.className='status error';return}
     const {error}=await db.from('jugend_game_events').insert({game_id:id,player_id:playerId,minute,event_type:eventType});
     s.textContent=error?'❌ '+error.message:'✓ Ereignis gespeichert.';s.className=`status ${error?'error':'ok'}`.trim();
     if(!error)openGame(id);
