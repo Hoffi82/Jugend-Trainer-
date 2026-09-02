@@ -2,7 +2,7 @@ const db=window.supabase.createClient('https://jvgqvtnqncelbhuordzy.supabase.co'
 const allowed=new Set(['Hoffi','Kai','Marcel']);
 const teamSelect=document.getElementById('teamSelect'),form=document.getElementById('gameForm'),games=document.getElementById('games'),status=document.getElementById('status');
 let allGames=[];
-const esc=v=>String(v??'').replace(/[&<>\'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>\'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function msg(t,c=''){status.textContent=t;status.className=`status ${c}`.trim()}
 const eventLabel={tor:'⚽ Tor',gelb:'🟨 Gelbe Karte',gelb_rot:'🟨🟥 Gelb-Rot',rot:'🟥 Rote Karte',einwechslung:'↗ Einwechslung',auswechslung:'↙ Auswechslung'};
 
@@ -13,8 +13,8 @@ async function load(){
   const r=await db.from('jugend_games').select('id,team_id,opponent,game_date,game_time,location,goals_for,goals_against,jugend_teams(name)').order('game_date',{ascending:false});
   if(r.error)throw r.error;
   allGames=r.data||[];
-  games.innerHTML=allGames.length?allGames.map(g=>`<div class="list-item"><strong>${esc(g.jugend_teams?.name||'Mannschaft')} – ${esc(g.opponent)}</strong><div>${new Date(g.game_date+'T00:00:00').toLocaleDateString('de-DE')}${g.game_time?' · '+esc(g.game_time.slice(0,5)):''}${g.location?' · '+esc(g.location):''}</div><div>Ergebnis: ${g.goals_for==null?'noch offen':esc(g.goals_for)+' : '+esc(g.goals_against)}</div><div class="game-tools"><button type="button" class="secondary" data-id="${g.id}">⚽ Kader & Ereignisse</button></div><div id="detail-${g.id}"></div></div>`).join(''):'<div class="empty">Noch keine Spiele angelegt.</div>';
-  document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openGame(Number(b.dataset.id)));
+  games.innerHTML=allGames.length?allGames.map(g=>`<div class="list-item"><strong>${esc(g.jugend_teams?.name||'Mannschaft')} – ${esc(g.opponent)}</strong><div>${new Date(g.game_date+'T00:00:00').toLocaleDateString('de-DE')}${g.game_time?' · '+esc(g.game_time.slice(0,5)):''}${g.location?' · '+esc(g.location):''}</div><div class="game-result">Ergebnis: ${g.goals_for==null?'noch offen':esc(g.goals_for)+' : '+esc(g.goals_against)}</div><div class="game-tools"><button type="button" class="secondary game-open" data-id="${g.id}">⚽ Kader & Ereignisse</button></div><div id="detail-${g.id}"></div></div>`).join(''):'<div class="empty">Noch keine Spiele angelegt.</div>';
+  games.querySelectorAll('.game-open').forEach(b=>b.onclick=()=>openGame(Number(b.dataset.id)));
 }
 
 async function openGame(id){
@@ -38,29 +38,31 @@ async function openGame(id){
     if(error){resultStatus.textContent='❌ '+error.message;resultStatus.className='status error';return}
     resultStatus.textContent='✓ Ergebnis gespeichert.';resultStatus.className='status ok';
     g.goals_for=Number(gf);g.goals_against=Number(ga);
-    const resultLine=host.parentElement.querySelector('div:nth-child(3)');if(resultLine)resultLine.textContent=`Ergebnis: ${g.goals_for} : ${g.goals_against}`;
+    const resultLine=host.closest('.list-item')?.querySelector('.game-result');if(resultLine)resultLine.textContent=`Ergebnis: ${g.goals_for} : ${g.goals_against}`;
   };
 
   document.getElementById(`saveSquad-${id}`).onclick=async()=>{
     const rows=[...host.querySelectorAll('.game-player[data-player]')];
-    for(const row of rows){
-      const data={game_id:id,player_id:Number(row.dataset.player),starter:row.querySelector('.starter').checked,minutes:Number(row.querySelector('.minutes').value)||0,goals:Number(row.querySelector('.goals').value)||0,yellow_cards:Number(row.querySelector('.yellow').value)||0,red_cards:Number(row.querySelector('.red').value)||0};
-      const {error}=await db.from('jugend_game_players').upsert(data,{onConflict:'game_id,player_id'});
-      if(error){document.getElementById(`saveStatus-${id}`).textContent='❌ '+error.message;document.getElementById(`saveStatus-${id}`).className='status error';return}
-    }
-    document.getElementById(`saveStatus-${id}`).textContent='✓ Kader und Statistik gespeichert.';document.getElementById(`saveStatus-${id}`).className='status ok';
+    const data=rows.map(row=>({game_id:id,player_id:Number(row.dataset.player),starter:row.querySelector('.starter').checked,minutes:Number(row.querySelector('.minutes').value)||0,goals:Number(row.querySelector('.goals').value)||0,yellow_cards:Number(row.querySelector('.yellow').value)||0,red_cards:Number(row.querySelector('.red').value)||0}));
+    const saveStatus=document.getElementById(`saveStatus-${id}`);
+    if(!data.length){saveStatus.textContent='Keine Spieler vorhanden.';saveStatus.className='status error';return}
+    const {error}=await db.from('jugend_game_players').upsert(data,{onConflict:'game_id,player_id'});
+    if(error){saveStatus.textContent='❌ '+error.message;saveStatus.className='status error';return}
+    saveStatus.textContent='✓ Kader und Statistik gespeichert.';saveStatus.className='status ok';
   };
 
   document.getElementById(`addEvent-${id}`).onclick=async()=>{
     const minute=Number(document.getElementById(`eventMinute-${id}`).value)||null;
-    if(!minute){document.getElementById(`eventStatus-${id}`).textContent='Bitte Minute eintragen.';document.getElementById(`eventStatus-${id}`).className='status error';return}
-    const data={game_id:id,player_id:Number(document.getElementById(`eventPlayer-${id}`).value),minute,event_type:document.getElementById(`eventType-${id}`).value};
-    const {error}=await db.from('jugend_game_events').insert(data);
-    const s=document.getElementById(`eventStatus-${id}`);s.textContent=error?'❌ '+error.message:'✓ Ereignis gespeichert.';s.className=`status ${error?'error':'ok'}`.trim();
+    const playerId=Number(document.getElementById(`eventPlayer-${id}`).value)||null;
+    const eventType=document.getElementById(`eventType-${id}`).value;
+    const s=document.getElementById(`eventStatus-${id}`);
+    if(!minute||minute<1||minute>150||!playerId){s.textContent='Bitte Spieler und gültige Minute (1–150) auswählen.';s.className='status error';return}
+    const {error}=await db.from('jugend_game_events').insert({game_id:id,player_id:playerId,minute,event_type:eventType});
+    s.textContent=error?'❌ '+error.message:'✓ Ereignis gespeichert.';s.className=`status ${error?'error':'ok'}`.trim();
     if(!error)openGame(id);
   };
 }
 
-form.addEventListener('submit',async e=>{e.preventDefault();const row={team_id:Number(teamSelect.value),opponent:document.getElementById('opponent').value.trim(),game_date:document.getElementById('gameDate').value,game_time:document.getElementById('gameTime').value||null,location:document.getElementById('location').value.trim()||null};if(!row.team_id){msg('Bitte Mannschaft auswählen.','error');return}const {error}=await db.from('jugend_games').insert(row);if(error){msg('❌ '+error.message,'error');return}form.reset();document.getElementById('gameDate').value=new Date().toISOString().slice(0,10);msg('✓ Spiel gespeichert.','ok');load()});
+form.addEventListener('submit',async e=>{e.preventDefault();const row={team_id:Number(teamSelect.value),opponent:document.getElementById('opponent').value.trim(),game_date:document.getElementById('gameDate').value,game_time:document.getElementById('gameTime').value||null,location:document.getElementById('location').value.trim()||null};if(!row.team_id){msg('Bitte Mannschaft auswählen.','error');return}if(!row.opponent||!row.game_date){msg('Bitte Gegner und Datum eintragen.','error');return}const {error}=await db.from('jugend_games').insert(row);if(error){msg('❌ '+error.message,'error');return}form.reset();document.getElementById('gameDate').value=new Date().toISOString().slice(0,10);msg('✓ Spiel gespeichert.','ok');await load()});
 
 (async()=>{const {data}=await db.auth.getSession();if(!data.session||!allowed.has(data.session.user.user_metadata?.display_name)){location.replace('login.html');return}document.getElementById('gameDate').value=new Date().toISOString().slice(0,10);try{await load()}catch(e){msg('❌ '+e.message,'error')}})();
