@@ -21,6 +21,13 @@ function setStatus(text, type = '') {
 function esc(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
+function localDateString() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 function updateSummary() {
   const values = [...attendance.values()];
   const counts = { anwesend: 0, entschuldigt: 0, unentschuldigt: 0 };
@@ -105,7 +112,7 @@ async function saveAttendance() {
   if (error || !data.session || !allowedTrainers.has(data.session.user.user_metadata?.display_name)) {
     window.location.replace('login.html'); return;
   }
-  dateInput.value = new Date().toISOString().slice(0, 10);
+  dateInput.value = localDateString();
   try { await loadTeams(); } catch (error) { setStatus(`❌ ${error.message || 'Mannschaften konnten nicht geladen werden.'}`, 'error'); }
 })();
 
