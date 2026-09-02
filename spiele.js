@@ -72,8 +72,21 @@ async function openGame(id){
     if(!Number.isInteger(minute)||minute<1||minute>150||!playerId){s.textContent='Bitte Spieler und gültige Minute (1–150) auswählen.';s.className='status error';return}
     if(!allowedEventTypes.has(eventType)){s.textContent='Bitte ein gültiges Ereignis auswählen.';s.className='status error';return}
     const {error}=await db.from('jugend_game_events').insert({game_id:id,player_id:playerId,minute,event_type:eventType});
-    s.textContent=error?'❌ '+error.message:'✓ Ereignis gespeichert.';s.className=`status ${error?'error':'ok'}`.trim();
-    if(!error)openGame(id);
+    if(error){s.textContent='❌ '+error.message;s.className='status error';return}
+
+    // Tor/Karten aus dem Ereignis automatisch in die Spielstatistik übernehmen.
+    if(eventType==='tor'||eventType==='gelb'||eventType==='gelb_rot'||eventType==='rot'){
+      const existing=map.get(playerId)||{game_id:id,player_id:playerId,starter:false,minutes:0,goals:0,yellow_cards:0,red_cards:0};
+      const update={game_id:id,player_id:playerId,starter:!!existing.starter,minutes:Number(existing.minutes)||0,goals:Number(existing.goals)||0,yellow_cards:Number(existing.yellow_cards)||0,red_cards:Number(existing.red_cards)||0};
+      if(eventType==='tor')update.goals+=1;
+      if(eventType==='gelb')update.yellow_cards+=1;
+      if(eventType==='gelb_rot')update.red_cards+=1;
+      if(eventType==='rot')update.red_cards+=1;
+      const sync=await db.from('jugend_game_players').upsert(update,{onConflict:'game_id,player_id'});
+      if(sync.error){s.textContent='✓ Ereignis gespeichert, aber Statistik konnte nicht automatisch aktualisiert werden: '+sync.error.message;s.className='status error';return}
+    }
+    s.textContent='✓ Ereignis gespeichert und Statistik aktualisiert.';s.className='status ok';
+    openGame(id);
   };
 }
 
