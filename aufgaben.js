@@ -1,17 +1,39 @@
 const db=window.supabase.createClient('https://jvgqvtnqncelbhuordzy.supabase.co','sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO');
 const allowed=new Set(['Hoffi','Kai','Marcel']);
 const teamSelect=document.getElementById('teamSelect'),form=document.getElementById('taskForm'),list=document.getElementById('taskList'),status=document.getElementById('status');
-const esc=v=>String(v??'').replace(/[&<>\'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>\'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
 const label=s=>({offen:'Offen',in_bearbeitung:'In Bearbeitung',erledigt:'Erledigt'}[s]||s);
 function msg(t,c=''){status.textContent=t;status.className=`status ${c}`.trim()}
+async function ensureSession(){
+ const current=await db.auth.getSession();
+ if(!current.data.session) throw new Error('Anmeldung abgelaufen. Bitte neu anmelden.');
+ const refreshed=await db.auth.refreshSession();
+ if(refreshed.error) throw refreshed.error;
+ if(!refreshed.data.session) throw new Error('Anmeldung konnte nicht erneuert werden.');
+}
 async function load(){
  const t=await db.from('jugend_teams').select('id,name,season').order('name');if(t.error)throw t.error;
  teamSelect.innerHTML='<option value="">Mannschaft auswählen…</option>'+(t.data||[]).map(x=>`<option value="${x.id}">${esc(x.name)}${x.season?' · '+esc(x.season):''}</option>`).join('');
  const r=await db.from('jugend_tasks').select('id,team_id,title,description,assigned_to,due_date,status,jugend_teams(name)').order('status').order('due_date',{ascending:true,nullsFirst:false});if(r.error)throw r.error;
  list.innerHTML=r.data?.length?r.data.map(x=>`<div class="list-item"><div class="task-head"><strong>${esc(x.title)}</strong><span>${esc(label(x.status))}</span></div><div>${esc(x.jugend_teams?.name||'Mannschaft')}${x.assigned_to?' · 👤 '+esc(x.assigned_to):''}${x.due_date?' · 📅 '+esc(new Date(x.due_date+'T00:00:00').toLocaleDateString('de-DE')):''}</div>${x.description?`<small>${esc(x.description)}</small>`:''}<div class="task-actions">${x.status==='offen'?`<button class="secondary task-progress" data-id="${x.id}" type="button">▶ In Bearbeitung</button>`:''}${x.status!=='erledigt'?`<button class="secondary task-done" data-id="${x.id}" type="button">✓ Erledigt</button>`:''}<button class="secondary task-delete" data-id="${x.id}" type="button">Löschen</button></div></div>`).join(''):'<div class="empty">Noch keine Aufgaben angelegt.</div>';
- list.querySelectorAll('.task-progress').forEach(b=>b.onclick=async()=>{const {error}=await db.from('jugend_tasks').update({status:'in_bearbeitung'}).eq('id',b.dataset.id);if(error){msg('❌ '+error.message,'error');return}await load()});
- list.querySelectorAll('.task-done').forEach(b=>b.onclick=async()=>{const {error}=await db.from('jugend_tasks').update({status:'erledigt'}).eq('id',b.dataset.id);if(error){msg('❌ '+error.message,'error');return}await load()});
- list.querySelectorAll('.task-delete').forEach(b=>b.onclick=async()=>{if(!confirm('Aufgabe wirklich löschen?'))return;const {error}=await db.from('jugend_tasks').delete().eq('id',b.dataset.id);if(error){msg('❌ '+error.message,'error');return}await load()});
+ list.querySelectorAll('.task-progress').forEach(b=>b.onclick=async()=>{try{await ensureSession();const {error}=await db.from('jugend_tasks').update({status:'in_bearbeitung'}).eq('id',b.dataset.id);if(error)throw error;await load()}catch(e){msg('❌ '+(e.message||'Änderung fehlgeschlagen'),'error')}});
+ list.querySelectorAll('.task-done').forEach(b=>b.onclick=async()=>{try{await ensureSession();const {error}=await db.from('jugend_tasks').update({status:'erledigt'}).eq('id',b.dataset.id);if(error)throw error;await load()}catch(e){msg('❌ '+(e.message||'Änderung fehlgeschlagen'),'error')}});
+ list.querySelectorAll('.task-delete').forEach(b=>b.onclick=async()=>{if(!confirm('Aufgabe wirklich löschen?'))return;try{await ensureSession();const {error}=await db.from('jugend_tasks').delete().eq('id',b.dataset.id);if(error)throw error;await load()}catch(e){msg('❌ '+(e.message||'Löschen fehlgeschlagen'),'error')}});
 }
-form.addEventListener('submit',async e=>{e.preventDefault();const row={team_id:Number(teamSelect.value),title:document.getElementById('title').value.trim(),assigned_to:document.getElementById('assignee').value.trim()||null,due_date:document.getElementById('dueDate').value||null,status:document.getElementById('taskStatus').value,description:document.getElementById('note').value.trim()||null};if(!row.team_id){msg('Bitte Mannschaft auswählen.','error');return}const {error}=await db.from('jugend_tasks').insert(row);if(error){msg('❌ '+error.message,'error');return}form.reset();msg('✓ Aufgabe gespeichert.','ok');await load()});
-(async()=>{const {data}=await db.auth.getSession();if(!data.session||!allowed.has(data.session.user.user_metadata?.display_name)){location.replace('login.html');return}try{await load()}catch(e){msg('❌ '+e.message,'error')}})();
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ try{
+  await ensureSession();
+  const title=document.getElementById('title').value.trim();
+  const row={team_id:Number(teamSelect.value),title,assigned_to:document.getElementById('assignee').value.trim()||null,due_date:document.getElementById('dueDate').value||null,status:document.getElementById('taskStatus').value,description:document.getElementById('note').value.trim()||null};
+  if(!row.team_id){msg('Bitte Mannschaft auswählen.','error');return}
+  if(!row.title){msg('Bitte Aufgabe eingeben.','error');return}
+  const {error}=await db.from('jugend_tasks').insert(row);
+  if(error)throw error;
+  form.reset();msg('✓ Aufgabe gespeichert.','ok');await load();
+ }catch(e){
+  const text=e?.message||String(e)||'Unbekannter Fehler';
+  msg(text.includes('Load failed')?'❌ Verbindung zu Supabase fehlgeschlagen – bitte Seite einmal neu laden.':'❌ '+text,'error');
+ }
+});
+(async()=>{const {data}=await db.auth.getSession();if(!data.session||!allowed.has(data.session.user.user_metadata?.display_name)){location.replace('login.html');return}try{await db.auth.refreshSession();await load()}catch(e){msg('❌ '+(e.message||'Anmeldung konnte nicht erneuert werden.'),'error')}})();
