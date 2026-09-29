@@ -2,7 +2,7 @@ const SUPABASE_URL = 'https://jvgqvtnqncelbhuordzy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const allowedTrainers = new Set(['Hoffi', 'Kai', 'Marcel']);
+const allowedTrainers = new Set(['Hoffi', 'Kai', 'Marcel', 'Jenny']);
 const teamSelect = document.getElementById('teamSelect');
 const dateInput = document.getElementById('trainingDate');
 const loadButton = document.getElementById('loadButton');
