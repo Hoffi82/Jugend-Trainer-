@@ -1,5 +1,5 @@
 const db=window.supabase.createClient('https://jvgqvtnqncelbhuordzy.supabase.co','sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO');
-const allowed=new Set(['Hoffi','Kai','Marcel']);
+const allowed=new Set(['Hoffi','Kai','Marcel','Jenny']);
 const teamSelect=document.getElementById('teamSelect'),form=document.getElementById('runForm'),list=document.getElementById('runList'),summary=document.getElementById('summary'),status=document.getElementById('status'),playerSelect=document.getElementById('playerSelect'),ranking=document.getElementById('ranking');
 const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 function localDateString(){const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),d=String(now.getDate()).padStart(2,'0');return `${y}-${m}-${d}`}
