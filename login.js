@@ -3,7 +3,7 @@ const SUPABASE_KEY = 'sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const REGISTER_FUNCTION = `${SUPABASE_URL}/functions/v1/trainer-register`;
 
-const allowedTrainers = new Set(['Hoffi', 'Kai', 'Marcel']);
+const allowedTrainers = new Set(['Hoffi', 'Kai', 'Marcel', 'Jenny']);
 const form = document.getElementById('loginForm');
 const message = document.getElementById('loginMessage');
 const submitButton = document.getElementById('submitButton');
@@ -30,8 +30,8 @@ function setMode(nextMode) {
   submitButton.textContent = register ? '🔐 Trainerkonto anlegen' : '🔐 Anmelden';
   document.getElementById('password').autocomplete = register ? 'new-password' : 'current-password';
   hint.textContent = register
-    ? 'Nur Hoffi, Kai und Marcel können hier ein eigenes Passwort für ihr Trainerkonto festlegen.'
-    : 'Nur Hoffi, Kai und Marcel sind als Trainer freigeschaltet.';
+    ? 'Hoffi, Kai, Marcel und Jenny können hier ihr eigenes Passwort für ihr Konto festlegen.'
+    : 'Hoffi, Kai, Marcel und Jenny sind freigeschaltet.';
   setMessage('');
 }
 
@@ -46,7 +46,7 @@ form.addEventListener('submit', async (event) => {
   const password = document.getElementById('password').value;
 
   if (!allowedTrainers.has(username)) {
-    setMessage('Dieser Trainer ist nicht freigeschaltet.', 'error');
+    setMessage('Dieser Benutzer ist nicht freigeschaltet.', 'error');
     return;
   }
   if (password.length < 6) {
