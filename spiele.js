@@ -1,5 +1,5 @@
 const db=window.supabase.createClient('https://jvgqvtnqncelbhuordzy.supabase.co','sb_publishable_4PusmhJVMm0b3Bm-2Y-FPQ__tnZZzZO');
-const allowed=new Set(['Hoffi','Kai','Marcel']);
+const allowed=new Set(['Hoffi','Kai','Marcel','Jenny']);
 const teamSelect=document.getElementById('teamSelect'),form=document.getElementById('gameForm'),games=document.getElementById('games'),status=document.getElementById('status');
 let allGames=[];
 const esc=v=>String(v??'').replace(/[&<>\'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
